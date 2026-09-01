@@ -1,0 +1,5 @@
+.env
+public/api/storage/
+node_modules/
+*.log
+.DS_Store

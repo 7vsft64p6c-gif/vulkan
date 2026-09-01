@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pago confirmado — VULKÁN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --obsidian:#120E0B; --obsidian-2:#1B1511; --ash:#2A231D; --lava:#FF5A1F; --ember:#FFB238;
+    --smoke:#9C9188; --paper:#F4EEE4; --paper-dim:#CFC6B8;
+    --crack-glow: 0 0 24px rgba(255,90,31,.55), 0 0 60px rgba(255,178,56,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{ background:var(--obsidian); color:var(--paper); font-family:'Inter',sans-serif; min-height:100vh; display:flex; flex-direction:column; }
+  a{ color:inherit; }
+  nav{ padding:20px clamp(20px,5vw,60px); }
+  .logo{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.2rem; text-decoration:none; }
+  .logo span{ color:var(--lava); }
+
+  main{ flex:1; display:flex; align-items:center; justify-content:center; padding:30px 20px; }
+  .card{ max-width:440px; width:100%; text-align:center; }
+
+  .icon-circle{
+    width:74px; height:74px; border-radius:50%; margin:0 auto 22px; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,90,31,.12); border:1px solid var(--lava);
+    animation:pop .4s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes pop{ 0%{ transform:scale(.4); opacity:0; } 100%{ transform:scale(1); opacity:1; } }
+  @media(prefers-reduced-motion:reduce){ .icon-circle{ animation:none; } }
+  .icon-circle svg{ width:32px; height:32px; stroke:var(--lava); }
+
+  h1{ font-family:'Space Grotesk',sans-serif; font-size:1.6rem; margin-bottom:8px; }
+  .sub{ color:var(--paper-dim); font-size:.92rem; margin-bottom:26px; }
+
+  .order-box{ background:var(--obsidian-2); border:1px solid rgba(244,238,228,.1); border-radius:4px; padding:20px; margin-bottom:26px; text-align:left; }
+  .order-box .row{ display:flex; justify-content:space-between; padding:6px 0; font-size:.88rem; }
+  .order-box .row .k{ color:var(--paper-dim); }
+  .order-box .row .v{ font-family:'JetBrains Mono',monospace; }
+  .order-box .row.total .v{ color:var(--ember); font-weight:700; font-size:1.05rem; }
+
+  .btns{ display:flex; flex-direction:column; gap:10px; }
+  .btn{ display:block; padding:13px; border-radius:2px; font-family:'JetBrains Mono',monospace; font-size:.84rem; letter-spacing:.02em; text-decoration:none; cursor:pointer; border:1px solid; }
+  .btn-primary{ background:var(--lava); border-color:var(--lava); color:var(--obsidian); }
+  .btn-primary:hover{ box-shadow:var(--crack-glow); }
+  .btn-secondary{ background:transparent; border-color:rgba(244,238,228,.25); color:var(--paper); }
+  .btn-secondary:hover{ border-color:var(--ember); }
+  #loading, #errorMsg{ color:var(--paper-dim); font-size:.9rem; }
+  #errorMsg{ display:none; color:var(--lava); }
+</style>
+</head>
+<body>
+<nav><a class="logo" href="index.html">VULK<span>Á</span>N</a></nav>
+<main>
+  <div class="card">
+    <div class="icon-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    <h1>¡Pago confirmado!</h1>
+    <p class="sub" id="statusSub">Cargando los datos de tu pedido…</p>
+
+    <div class="order-box" id="orderBox" style="display:none">
+      <div class="row"><span class="k">Pedido</span><span class="v" id="orderNum">—</span></div>
+      <div class="row total"><span class="k">Total</span><span class="v" id="orderTotal">—</span></div>
+    </div>
+
+    <p id="errorMsg">No pudimos encontrar los datos de este pedido. Si acabas de pagar, revisa tu correo o escríbenos.</p>
+
+    <div class="btns" id="btnRow" style="display:none">
+      <a class="btn btn-primary" id="downloadBtn" href="#">↓ Descargar comprobante</a>
+      <a class="btn btn-secondary" id="viewOrderBtn" href="#">Ver pedido</a>
+      <a class="btn btn-secondary" href="catalogo.html">Volver a la tienda</a>
+    </div>
+  </div>
+</main>
+
+<script src="assets/cart.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  let orderNumber = params.get('order');
+  let email = params.get('email');
+  if (!orderNumber || !email) {
+    const last = Cart.getLastOrder();
+    if (last) { orderNumber = orderNumber || last.order_number; email = email || last.email; }
+  }
+
+  const statusSub = document.getElementById('statusSub');
+  const orderBox = document.getElementById('orderBox');
+  const errorMsg = document.getElementById('errorMsg');
+  const btnRow = document.getElementById('btnRow');
+
+  Cart.clear(); // la compra ya se realizó (o está resolviéndose) — no seguimos ofreciendo el mismo carrito
+
+  async function load(){
+    if (!orderNumber || !email) {
+      statusSub.style.display = 'none';
+      errorMsg.style.display = 'block';
+      return;
+    }
+    try {
+      const res = await fetch(`/api/orders/get.php?order_number=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'No encontrado');
+
+      document.getElementById('orderNum').textContent = data.order_number;
+      document.getElementById('orderTotal').textContent = Cart.formatCents(data.total_cents);
+      orderBox.style.display = 'block';
+
+      if (data.status === 'PAID') {
+        statusSub.textContent = 'Tu pago fue confirmado y tu pedido está en preparación.';
+      } else {
+        statusSub.textContent = 'Registramos tu pedido. En cuanto el pago se confirme te avisaremos.';
+      }
+
+      const receiptUrl = `/api/receipt.php?order_number=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`;
+      document.getElementById('downloadBtn').href = receiptUrl;
+      document.getElementById('viewOrderBtn').href = `order.html?order=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`;
+      btnRow.style.display = 'flex';
+      btnRow.style.flexDirection = 'column';
+    } catch (err) {
+      statusSub.style.display = 'none';
+      errorMsg.style.display = 'block';
+    }
+  }
+  load();
+</script>
+</body>
+</html>

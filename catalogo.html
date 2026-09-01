@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo completo — VULKÁN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --obsidian:#120E0B;
+    --obsidian-2:#1B1511;
+    --ash:#2A231D;
+    --lava:#FF5A1F;
+    --ember:#FFB238;
+    --smoke:#9C9188;
+    --paper:#F4EEE4;
+    --paper-dim:#CFC6B8;
+    --crack-glow: 0 0 24px rgba(255,90,31,.55), 0 0 60px rgba(255,178,56,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--obsidian);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--lava);color:var(--obsidian);}
+
+  .noise{
+    position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 6vw;
+    backdrop-filter:blur(10px);
+    background:rgba(18,14,11,.92);
+    border-bottom:1px solid rgba(244,238,228,.08);
+  }
+  .logo{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.3rem;
+    letter-spacing:.06em; color:var(--paper); text-decoration:none;
+  }
+  .logo span{color:var(--lava);}
+  .nav-links{display:flex; gap:36px; list-style:none;}
+  .nav-links a{
+    color:var(--paper-dim); text-decoration:none; font-size:.85rem;
+    letter-spacing:.05em; font-family:'JetBrains Mono',monospace;
+    transition:color .25s ease;
+  }
+  .nav-links a:hover, .nav-links a.active{color:var(--ember);}
+  .nav-cta{
+    font-family:'JetBrains Mono',monospace; font-size:.8rem; letter-spacing:.04em;
+    color:var(--obsidian); background:var(--lava); padding:10px 18px; border-radius:2px;
+    text-decoration:none; border:1px solid var(--lava);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .nav-cta:hover{ box-shadow:var(--crack-glow); transform:translateY(-1px); }
+  @media(max-width:820px){ .nav-links{display:none;} }
+
+  /* ---------- mobile menu ---------- */
+  .menu-toggle{
+    display:none; width:38px; height:38px; background:none; border:1px solid rgba(244,238,228,.25);
+    border-radius:2px; cursor:pointer; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .menu-toggle span{
+    display:block; width:18px; height:1.5px; background:var(--paper); position:relative;
+    transition:transform .25s ease, opacity .25s ease;
+  }
+  .menu-toggle span::before, .menu-toggle span::after{
+    content:''; position:absolute; left:0; width:18px; height:1.5px; background:var(--paper);
+    transition:transform .25s ease, opacity .25s ease;
+  }
+  .menu-toggle span::before{ top:-6px; }
+  .menu-toggle span::after{ top:6px; }
+  .menu-toggle.open span{ background:transparent; }
+  .menu-toggle.open span::before{ transform:translateY(6px) rotate(45deg); }
+  .menu-toggle.open span::after{ transform:translateY(-6px) rotate(-45deg); }
+  @media(max-width:820px){ .menu-toggle{display:flex;} }
+
+  .mobile-menu{
+    position:fixed; top:0; left:0; right:0; z-index:49;
+    background:var(--obsidian-2); border-bottom:1px solid rgba(244,238,228,.12);
+    max-height:0; overflow:hidden; opacity:0;
+    transition:max-height .35s ease, opacity .3s ease;
+    display:flex; flex-direction:column;
+    padding:0 6vw;
+  }
+  .mobile-menu.open{ max-height:420px; opacity:1; padding:88px 6vw 24px; }
+  .mobile-menu a{
+    color:var(--paper); text-decoration:none; font-family:'JetBrains Mono',monospace;
+    font-size:.95rem; letter-spacing:.04em; padding:16px 0; border-bottom:1px solid rgba(244,238,228,.1);
+  }
+  .mobile-menu a.active{ color:var(--ember); }
+  .mobile-menu a.mobile-cta{ color:var(--lava); border-bottom:none; padding-top:20px; }
+
+  /* ---------- header ---------- */
+  header.page-head{ padding:80px 6vw 40px; position:relative; z-index:2; }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:.78rem; letter-spacing:.18em;
+    color:var(--lava); text-transform:uppercase; margin-bottom:18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:''; width:24px; height:1px; background:var(--lava);}
+  header.page-head h1{
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:clamp(2.4rem,6vw,4.6rem); line-height:1; letter-spacing:-.02em; color:var(--paper);
+  }
+  header.page-head p{ color:var(--paper-dim); max-width:560px; margin-top:18px; font-size:1.05rem; }
+
+  /* ---------- filter bar ---------- */
+  .filter-bar{
+    position:sticky; top:73px; z-index:40; background:rgba(18,14,11,.96);
+    backdrop-filter:blur(10px); border-bottom:1px solid rgba(244,238,228,.08);
+    padding:18px 6vw; display:flex; gap:14px; flex-wrap:wrap; align-items:center;
+  }
+  .search-box{
+    flex:1 1 220px; position:relative;
+  }
+  .search-box input{
+    width:100%; background:var(--obsidian-2); border:1px solid rgba(244,238,228,.15);
+    color:var(--paper); font-family:'Inter',sans-serif; font-size:.92rem;
+    padding:11px 16px; border-radius:2px; outline:none; transition:border-color .2s ease;
+  }
+  .search-box input:focus{ border-color:var(--ember); }
+  .search-box input::placeholder{ color:var(--smoke); }
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{
+    font-family:'JetBrains Mono',monospace; font-size:.74rem; letter-spacing:.03em;
+    padding:9px 14px; border:1px solid rgba(244,238,228,.18); border-radius:20px;
+    color:var(--paper-dim); background:transparent; cursor:pointer; transition:all .2s ease;
+    white-space:nowrap;
+  }
+  .chip:hover{ border-color:var(--ember); color:var(--ember); }
+  .chip.active{ background:var(--lava); border-color:var(--lava); color:var(--obsidian); font-weight:500; }
+  .result-count{
+    font-family:'JetBrains Mono',monospace; font-size:.72rem; color:var(--smoke);
+    padding:24px 6vw 0; letter-spacing:.03em;
+  }
+
+  /* ---------- product grid ---------- */
+  .prod-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:2px;
+    background:rgba(244,238,228,.1); border:1px solid rgba(244,238,228,.1);
+    margin:24px 6vw 100px;
+  }
+  .prod-card{
+    background:var(--obsidian-2); display:flex; flex-direction:column; position:relative; overflow:hidden;
+    transition:transform .25s ease;
+  }
+  .prod-card::after{
+    content:''; position:absolute; top:0; left:0; width:100%; height:2px;
+    background:linear-gradient(90deg, var(--lava), var(--ember));
+    transform:scaleX(0); transform-origin:left; transition:transform .3s ease;
+    z-index:2;
+  }
+  .prod-card:hover{ transform:translateY(-3px); }
+  .prod-card:hover::after{ transform:scaleX(1); }
+  @media (prefers-reduced-motion: reduce){ .prod-card{ transition:none; } .prod-card:hover{ transform:none; } }
+  .prod-img{
+    width:100%; aspect-ratio:1/1; background:var(--ash);
+    display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;
+    cursor:pointer;
+  }
+  .prod-img img{ width:100%; height:100%; object-fit:cover; display:block; transition:opacity .15s ease, transform .4s ease; }
+  .prod-card:hover .prod-img img{ transform:scale(1.045); }
+  @media (prefers-reduced-motion: reduce){ .prod-card:hover .prod-img img{ transform:none; } }
+  .prod-img .fallback{
+    font-family:'JetBrains Mono',monospace; font-size:.68rem; color:var(--smoke);
+    text-align:center; padding:14px; line-height:1.5;
+  }
+  .prod-cat-tag{
+    position:absolute; top:10px; left:10px; font-family:'JetBrains Mono',monospace;
+    font-size:.62rem; letter-spacing:.04em; color:var(--ember); background:rgba(18,14,11,.75);
+    padding:4px 9px; border-radius:12px; border:1px solid rgba(255,178,56,.3);
+  }
+  .prod-status-tag{
+    position:absolute; top:10px; right:10px; font-family:'JetBrains Mono',monospace;
+    font-size:.62rem; letter-spacing:.04em; color:var(--paper); background:rgba(18,14,11,.85);
+    padding:4px 9px; border-radius:12px; border:1px solid rgba(255,90,31,.5);
+  }
+  .prod-card.is-unavailable .prod-img{ opacity:.45; filter:grayscale(.5); }
+  .prod-card.is-unavailable .prod-price{ color:var(--smoke); }
+  .prod-body{ padding:20px 22px 24px; display:flex; flex-direction:column; gap:9px; flex:1; }
+  .prod-body h3{
+    font-family:'Space Grotesk',sans-serif; font-size:1.08rem; font-weight:600; color:var(--paper);
+    line-height:1.28; cursor:pointer;
+  }
+  .prod-body h3:hover{ color:var(--ember); }
+  .prod-body .desc:empty{ display:none; }
+  .prod-body .desc{ font-size:.82rem; color:var(--smoke); line-height:1.5; flex:1; }
+  .prod-foot{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:6px; gap:10px; }
+  .prod-price-block{ display:flex; flex-direction:column; gap:2px; }
+  .prod-price{ font-family:'JetBrains Mono',monospace; font-size:1.22rem; color:var(--ember); font-weight:600; }
+  .prod-wholesale{ font-family:'JetBrains Mono',monospace; font-size:.66rem; color:var(--smoke); }
+  .prod-ask{
+    font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--paper-dim); text-decoration:none;
+    border:1px solid rgba(244,238,228,.2); padding:7px 12px; border-radius:2px; transition:all .2s ease; flex-shrink:0;
+  }
+  .prod-ask:hover{ border-color:var(--lava); color:var(--lava); }
+  .prod-view-btn{
+    font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.03em;
+    color:var(--paper); background:transparent; border:1px solid rgba(244,238,228,.28);
+    padding:8px 12px; border-radius:2px; cursor:pointer; transition:all .2s ease; flex-shrink:0;
+  }
+  .prod-view-btn:hover{ border-color:var(--ember); color:var(--ember); }
+
+  .empty-state{
+    margin:60px 6vw; text-align:center; color:var(--smoke); font-family:'JetBrains Mono',monospace;
+    font-size:.9rem; display:none;
+  }
+
+  /* ---------- product detail modal ---------- */
+  .pdp-overlay{
+    position:fixed; inset:0; background:rgba(18,14,11,.72); z-index:98;
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+    display:flex; align-items:center; justify-content:center; padding:5vh 4vw;
+  }
+  .pdp-overlay.open{ opacity:1; pointer-events:auto; }
+  @media (prefers-reduced-motion: reduce){ .pdp-overlay{ transition:none; } }
+
+  .pdp-modal{
+    background:var(--obsidian-2); border:1px solid rgba(244,238,228,.12);
+    width:min(980px,100%); max-height:90vh; overflow-y:auto; position:relative;
+    display:grid; grid-template-columns:1fr 1fr; gap:0;
+    transform:translateY(14px) scale(.98); opacity:0; transition:transform .28s ease, opacity .25s ease;
+  }
+  .pdp-overlay.open .pdp-modal{ transform:translateY(0) scale(1); opacity:1; }
+  @media (prefers-reduced-motion: reduce){ .pdp-modal{ transition:none; } }
+  @media(max-width:760px){ .pdp-modal{ grid-template-columns:1fr; max-height:94vh; } }
+
+  .pdp-close{
+    position:absolute; top:14px; right:14px; z-index:5; width:36px; height:36px;
+    border-radius:50%; border:1px solid rgba(244,238,228,.25); background:rgba(18,14,11,.75);
+    color:var(--paper); font-size:1.2rem; line-height:1; cursor:pointer; display:flex;
+    align-items:center; justify-content:center; transition:border-color .2s ease, color .2s ease;
+  }
+  .pdp-close:hover{ border-color:var(--lava); color:var(--lava); }
+
+  .pdp-gallery{ background:var(--ash); display:flex; flex-direction:column; padding:26px; gap:14px; }
+  .pdp-main-img{
+    width:100%; aspect-ratio:1/1; background:var(--obsidian); border-radius:2px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .pdp-main-img img{ width:100%; height:100%; object-fit:contain; display:block; }
+  .pdp-main-img .fallback{
+    font-family:'JetBrains Mono',monospace; font-size:.75rem; color:var(--smoke); text-align:center; padding:20px;
+  }
+  .pdp-thumbs{ display:flex; gap:10px; flex-wrap:wrap; }
+  .pdp-thumb{
+    width:56px; height:56px; border-radius:2px; overflow:hidden; cursor:pointer;
+    border:1px solid rgba(244,238,228,.15); background:var(--obsidian); flex-shrink:0;
+    transition:border-color .2s ease;
+  }
+  .pdp-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .pdp-thumb.active{ border-color:var(--ember); }
+
+  .pdp-info{ padding:34px 34px 30px; display:flex; flex-direction:column; }
+  .pdp-cat{
+    font-family:'JetBrains Mono',monospace; font-size:.7rem; letter-spacing:.1em; color:var(--ember);
+    text-transform:uppercase; margin-bottom:10px;
+  }
+  .pdp-name{
+    font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:700; color:var(--paper);
+    line-height:1.2; margin-bottom:14px;
+  }
+  .pdp-price-row{ display:flex; align-items:baseline; gap:12px; margin-bottom:6px; flex-wrap:wrap; }
+  .pdp-price{ font-family:'JetBrains Mono',monospace; font-size:1.65rem; color:var(--ember); font-weight:600; }
+  .pdp-wholesale{ font-family:'JetBrains Mono',monospace; font-size:.78rem; color:var(--smoke); }
+  .pdp-status{
+    display:inline-block; font-family:'JetBrains Mono',monospace; font-size:.68rem; letter-spacing:.04em;
+    color:var(--paper); background:rgba(255,90,31,.18); border:1px solid rgba(255,90,31,.5);
+    padding:4px 10px; border-radius:12px; margin-bottom:14px; width:fit-content;
+  }
+  .pdp-desc{ color:var(--paper-dim); font-size:.92rem; line-height:1.6; margin:6px 0 4px; }
+  .pdp-desc:empty{ display:none; }
+
+  .pdp-variant-block{ margin-top:16px; }
+  .pdp-variant-block:empty{ display:none; }
+  .pdp-variant-label{
+    font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.04em; color:var(--paper-dim);
+    margin-bottom:10px; display:flex; gap:6px;
+  }
+  .pdp-variant-label .val{ color:var(--paper); font-weight:500; }
+  .pdp-swatches{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+  .pdp-swatch{
+    width:34px; height:34px; border-radius:50%; cursor:pointer; position:relative;
+    border:2px solid transparent; outline:1px solid rgba(244,238,228,.2); outline-offset:2px;
+    transition:outline-color .2s ease, border-color .2s ease;
+  }
+  .pdp-swatch.selected{ border-color:var(--obsidian-2); outline-color:var(--ember); outline-width:2px; }
+  .pdp-swatch:hover{ outline-color:var(--paper-dim); }
+
+  .pdp-models{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .pdp-model-pill{
+    font-family:'JetBrains Mono',monospace; font-size:.76rem; letter-spacing:.02em;
+    padding:9px 14px; border:1px solid rgba(244,238,228,.2); border-radius:20px;
+    color:var(--paper-dim); background:transparent; cursor:pointer; transition:all .2s ease;
+  }
+  .pdp-model-pill:hover{ border-color:var(--ember); color:var(--ember); }
+  .pdp-model-pill.selected{ background:var(--lava); border-color:var(--lava); color:var(--obsidian); font-weight:500; }
+
+  .pdp-trust{
+    display:flex; flex-direction:column; gap:7px; margin:18px 0 22px;
+    font-family:'JetBrains Mono',monospace; font-size:.76rem; color:var(--paper-dim);
+  }
+  .pdp-trust span{ color:var(--ember); margin-right:7px; }
+
+  .pdp-actions{ display:flex; gap:12px; margin-top:auto; flex-wrap:wrap; }
+  .pdp-buy-now, .pdp-add-cart-btn{
+    font-family:'JetBrains Mono',monospace; font-size:.85rem; letter-spacing:.03em;
+    padding:14px 20px; border-radius:2px; cursor:pointer; flex:1 1 160px; text-align:center;
+    transition:box-shadow .2s ease, opacity .2s ease, transform .15s ease; border:1px solid;
+  }
+  .pdp-buy-now{ background:var(--lava); border-color:var(--lava); color:var(--obsidian); font-weight:600; }
+  .pdp-buy-now:hover{ box-shadow:var(--crack-glow); }
+  .pdp-add-cart-btn{ background:transparent; border-color:var(--paper); color:var(--paper); }
+  .pdp-add-cart-btn:hover{ border-color:var(--ember); color:var(--ember); }
+  .pdp-add-cart-btn.added{ background:var(--paper); border-color:var(--paper); color:var(--obsidian); }
+  .pdp-buy-now:active, .pdp-add-cart-btn:active{ transform:scale(.98); }
+  .pdp-buy-now:disabled, .pdp-add-cart-btn:disabled{ opacity:.4; cursor:not-allowed; }
+  @media (prefers-reduced-motion: reduce){ .pdp-buy-now:active, .pdp-add-cart-btn:active{ transform:none; } }
+  @media(max-width:520px){
+    .pdp-info{ padding:26px 20px 24px; }
+    .pdp-gallery{ padding:20px; }
+    .pdp-name{ font-size:1.32rem; }
+  }
+
+  footer{
+    padding:34px 6vw; border-top:1px solid rgba(244,238,228,.12);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+  }
+  footer p{font-family:'JetBrains Mono',monospace; font-size:.75rem; color:var(--smoke); letter-spacing:.03em;}
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<nav>
+  <a class="logo" href="index.html">VULK<span>Á</span>N</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="catalogo.html" class="active">Catálogo</a></li>
+    <li><a href="index.html#envios">Envíos</a></li>
+    <li><a href="index.html#contacto">Contacto</a></li>
+  </ul>
+  <a class="nav-cta" href="mailto:stevebunnies62@gmail.com">Escríbenos</a>
+  <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" onclick="toggleMobileMenu()"><span></span></button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">Inicio</a>
+  <a href="catalogo.html" class="active" onclick="toggleMobileMenu()">Catálogo</a>
+  <a href="index.html#envios">Envíos</a>
+  <a href="index.html#contacto">Contacto</a>
+  <a href="mailto:stevebunnies62@gmail.com" class="mobile-cta">Escríbenos →</a>
+</div>
+
+<header class="page-head">
+  <div class="eyebrow">Catálogo completo</div>
+  <h1 id="catalogCount">Productos,<br>uno por uno</h1>
+  <p>Busca por nombre o filtra por categoría. El precio mayorista aplica desde 3 unidades. Escríbenos por cualquiera y te confirmamos disponibilidad al toque.</p>
+</header>
+
+<div class="filter-bar">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Buscar producto por nombre...">
+  </div>
+  <div class="chip-row" id="chipRow"></div>
+</div>
+
+<p class="result-count" id="resultCount"></p>
+
+<div class="prod-grid" id="prodGrid"></div>
+<p class="empty-state" id="emptyState">No encontramos productos con ese filtro. Prueba con otra palabra o categoría.</p>
+
+<div class="pdp-overlay" id="pdpOverlay">
+  <div class="pdp-modal" id="pdpModal" role="dialog" aria-modal="true" aria-labelledby="pdpName">
+    <button class="pdp-close" id="pdpClose" aria-label="Cerrar">&times;</button>
+    <div class="pdp-gallery">
+      <div class="pdp-main-img" id="pdpMainImg"></div>
+      <div class="pdp-thumbs" id="pdpThumbs"></div>
+    </div>
+    <div class="pdp-info">
+      <div class="pdp-cat" id="pdpCat"></div>
+      <h2 class="pdp-name" id="pdpName"></h2>
+      <div class="pdp-price-row">
+        <span class="pdp-price" id="pdpPrice"></span>
+        <span class="pdp-wholesale" id="pdpWholesale"></span>
+      </div>
+      <span class="pdp-status" id="pdpStatus"></span>
+      <p class="pdp-desc" id="pdpDesc"></p>
+
+      <div class="pdp-variant-block" id="pdpColorBlock">
+        <div class="pdp-variant-label">Color: <span class="val" id="pdpColorVal"></span></div>
+        <div class="pdp-swatches" id="pdpSwatches"></div>
+      </div>
+
+      <div class="pdp-variant-block" id="pdpModelBlock">
+        <div class="pdp-variant-label">Modelo: <span class="val" id="pdpModelVal"></span></div>
+        <div class="pdp-models" id="pdpModels"></div>
+      </div>
+
+      <div class="pdp-trust">
+        <div><span>✓</span>Producto verificado</div>
+        <div><span>✓</span>Compra segura</div>
+        <div><span>✓</span>Envíos disponibles</div>
+      </div>
+
+      <div class="pdp-actions">
+        <button class="pdp-add-cart-btn prod-add-cart" id="pdpAddCart">+ Agregar al carrito</button>
+        <button class="pdp-buy-now" id="pdpBuyNow">Comprar ahora</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 VULKÁN — Arequipa, Perú</p>
+  <p>Tecnología premium, precio real</p>
+</footer>
+
+<script>
+function toggleMobileMenu(){
+  document.getElementById('mobileMenu').classList.toggle('open');
+  document.getElementById('menuToggle').classList.toggle('open');
+}
+
+/* =====================================================================
+   CATÁLOGO DE PRODUCTOS — edita solo esta lista
+   =====================================================================
+   Copia y pega un bloque { ... } por cada producto nuevo. Campos:
+
+   name      -> nombre del producto (texto)
+   category  -> una de las claves definidas en CATEGORIES más abajo
+                (audifonos, drones, camaras, selfie, powerbanks,
+                 cargadores, radios, otros)
+   price     -> precio a mostrar, ej: "S/ 45.00"  (o "Consultar" si no
+                tienes precio fijo aún)
+   desc      -> 1 línea corta con características (batería, conexión,
+                colores, etc.)
+   image     -> ruta a la foto del producto, ej: "assets/productos/
+                audifono-01.jpg". Si la dejas como "" (vacío), se
+                muestra automáticamente un cuadro de reemplazo — no
+                rompe el diseño.
+
+   No necesitas tocar nada de CSS ni HTML: solo agrega, edita o borra
+   objetos aquí abajo y guarda el archivo.
+   ===================================================================== */
+
+/* =====================================================================
+   CATÁLOGO DE PRODUCTOS — datos reales de Fox Phone / VULKÁN
+   =====================================================================
+   Fuente: Fase 3 - Precios Definitivos (162 productos).
+   Categorías = las mismas 11 categorías de tu catálogo.
+
+   PARA CAMBIAR UN PRECIO: busca el producto por su "name" y edita solo
+   el valor de "price" (precio unitario) o "wholesale" (precio mayorista
+   3+). No toques nada más de esa línea ni del diseño.
+
+   Ejemplo:
+     price: "S/21.90"   ->   price: "S/19.90"
+
+   Otros campos de cada producto:
+   category  -> clave de categoría (ver CATEGORIES abajo)
+   status    -> null si está disponible, o un texto como "Agotado" /
+                "Próximamente" / "Últimas unidades" para mostrar una
+                etiqueta sobre la foto
+   desc      -> línea corta opcional con características (déjalo como
+                "" si no quieres poner nada)
+   images    -> lista de fotos del producto. Si pones más de una, al
+                pasar el mouse por la tarjeta van rotando solas entre
+                todas. Ejemplo con 3 fotos:
+                  images: ["assets/productos/cubo-20w-1.jpg",
+                           "assets/productos/cubo-20w-2.jpg",
+                           "assets/productos/cubo-20w-3.jpg"]
+                Con una sola foto no rota, solo se queda fija. Con el
+                arreglo vacío ([]) se muestra un cuadro de reemplazo
+                automático — no rompe el diseño.
+   ===================================================================== */
+
+/* =====================================================================
+   CATÁLOGO — se carga desde products.json (fuente única de verdad que
+   también usa el backend para validar precios). No se edita a mano
+   aquí: para cambiar precios/productos, edita public/products.json.
+   ===================================================================== */
+
+let CATEGORIES = {};
+let products = [];
+let rawById = {}; // id -> producto completo (incluye colores/modelos) para el modal de detalle
+
+function toDisplayProduct(p) {
+  return {
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    price: p.price_display,
+    wholesale: p.wholesale_display,
+    status: p.status,
+    desc: p.desc,
+    images: p.images,
+  };
+}
+
+
+
+/* =====================================================================
+   A partir de aquí es el motor que dibuja la página — no hace falta
+   tocarlo.
+   ===================================================================== */
+
+const grid = document.getElementById('prodGrid');
+const chipRow = document.getElementById('chipRow');
+const searchInput = document.getElementById('searchInput');
+const resultCount = document.getElementById('resultCount');
+const emptyState = document.getElementById('emptyState');
+
+let activeCategory = 'all';
+
+function buildChips(){
+  const allChip = document.createElement('button');
+  allChip.className = 'chip active';
+  allChip.textContent = `Todos (${products.length})`;
+  allChip.dataset.cat = 'all';
+  chipRow.appendChild(allChip);
+
+  Object.keys(CATEGORIES).forEach(key=>{
+    const count = products.filter(p=>p.category===key).length;
+    if(count === 0) return;
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = `${CATEGORIES[key]} (${count})`;
+    chip.dataset.cat = key;
+    chipRow.appendChild(chip);
+  });
+
+  chipRow.addEventListener('click', (e)=>{
+    if(e.target.tagName !== 'BUTTON') return;
+    activeCategory = e.target.dataset.cat;
+    [...chipRow.children].forEach(c=>c.classList.remove('active'));
+    e.target.classList.add('active');
+    render();
+  });
+}
+
+function cardHTML(p){
+  const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  const imgBlock = imgs.length
+    ? `<img src="${imgs[0]}" alt="${p.name}" onerror="this.parentElement.innerHTML='<div class=\\'fallback\\'>📷<br>Falta imagen<br>${p.name}</div>'">`
+    : `<div class="fallback">📷<br>Coloca aquí<br>la foto</div>`;
+
+  const statusTag = p.status ? `<span class="prod-status-tag">${p.status}</span>` : '';
+  const wholesaleLine = p.wholesale ? `<span class="prod-wholesale">Mayorista 3+: ${p.wholesale}</span>` : '';
+  const cardClass = p.status ? 'prod-card is-unavailable' : 'prod-card';
+  const unavailable = Boolean(p.status);
+
+  return `
+    <div class="${cardClass}" data-name="${p.name.toLowerCase()}" data-cat="${p.category}">
+      <div class="prod-img" data-images='${JSON.stringify(imgs)}' data-id="${p.id}">
+        ${imgBlock}
+        <span class="prod-cat-tag">${CATEGORIES[p.category] || 'Otros'}</span>
+        ${statusTag}
+      </div>
+      <div class="prod-body">
+        <h3 data-id="${p.id}">${p.name}</h3>
+        <p class="desc">${p.desc || ''}</p>
+        <div class="prod-foot">
+          <div class="prod-price-block">
+            <span class="prod-price">${p.price}</span>
+            ${wholesaleLine}
+          </div>
+          <button class="prod-view-btn" data-id="${p.id}">Ver producto</button>
+        </div>
+        <div class="prod-actions">
+          <button class="prod-add-cart" data-id="${p.id}" ${unavailable ? 'disabled' : ''}>${unavailable ? 'No disponible' : '+ Carrito'}</button>
+          <a class="prod-ask" href="mailto:stevebunnies62@gmail.com?subject=Consulta: ${encodeURIComponent(p.name)}">Consultar</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+function attachImageCycling(){
+  document.querySelectorAll('.prod-img').forEach(el=>{
+    let imgs = [];
+    try{ imgs = JSON.parse(el.dataset.images || '[]'); }catch(e){ imgs = []; }
+    if(imgs.length < 2) return; // nada que rotar
+
+    const imgTag = el.querySelector('img');
+    if(!imgTag) return;
+
+    let i = 0;
+    let timer = null;
+
+    el.addEventListener('mouseenter', ()=>{
+      timer = setInterval(()=>{
+        i = (i + 1) % imgs.length;
+        imgTag.style.opacity = 0;
+        setTimeout(()=>{
+          imgTag.src = imgs[i];
+          imgTag.style.opacity = 1;
+        }, 150);
+      }, 900);
+    });
+
+    el.addEventListener('mouseleave', ()=>{
+      clearInterval(timer);
+      i = 0;
+      imgTag.style.opacity = 0;
+      setTimeout(()=>{
+        imgTag.src = imgs[0];
+        imgTag.style.opacity = 1;
+      }, 150);
+    });
+  });
+}
+
+function render(){
+  const q = searchInput.value.trim().toLowerCase();
+  const filtered = products.filter(p=>{
+    const matchesCat = activeCategory === 'all' || p.category === activeCategory;
+    const matchesQuery = !q || p.name.toLowerCase().includes(q);
+    return matchesCat && matchesQuery;
+  });
+
+  grid.innerHTML = filtered.map(cardHTML).join('');
+  resultCount.textContent = `${filtered.length} producto${filtered.length===1?'':'s'}`;
+  emptyState.style.display = filtered.length === 0 ? 'block' : 'none';
+  grid.style.display = filtered.length === 0 ? 'none' : 'grid';
+  attachImageCycling();
+}
+
+searchInput.addEventListener('input', render);
+
+// Si se llega desde index.html con ?cat=clave, abrir ya filtrado en esa categoría
+const urlParams = new URLSearchParams(window.location.search);
+const catParam = urlParams.get('cat');
+
+function initCatalog(){
+  buildChips();
+  if (catParam && CATEGORIES[catParam]) {
+    activeCategory = catParam;
+    [...chipRow.children].forEach(c=>{
+      c.classList.toggle('active', c.dataset.cat === catParam);
+    });
+  }
+  render();
+}
+
+fetch('/products.json')
+  .then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(data => {
+    CATEGORIES = data.categories;
+    products = data.products.map(toDisplayProduct);
+    rawById = {};
+    data.products.forEach(p => { rawById[p.id] = p; });
+    const countEl = document.getElementById('catalogCount');
+    if (countEl) countEl.innerHTML = `${products.length} producto${products.length===1?'':'s'},<br>uno por uno`;
+    initCatalog();
+  })
+  .catch(err => {
+    console.error('No se pudo cargar el catálogo:', err);
+    resultCount.textContent = 'No se pudo cargar el catálogo. Intenta recargar la página.';
+    emptyState.style.display = 'block';
+    grid.style.display = 'none';
+  });
+
+/* =====================================================================
+   VISTA DE DETALLE DE PRODUCTO (modal) — un solo componente reutilizable
+   para los 148 productos. Lee colores/modelos directamente de
+   products.json (rawById). Mientras un color no tenga "imagen" propia,
+   se sigue mostrando la imagen principal del producto (tal como se pidió).
+   ===================================================================== */
+
+const pdpOverlay = document.getElementById('pdpOverlay');
+const pdpModal = document.getElementById('pdpModal');
+const pdpClose = document.getElementById('pdpClose');
+const pdpMainImg = document.getElementById('pdpMainImg');
+const pdpThumbs = document.getElementById('pdpThumbs');
+const pdpCat = document.getElementById('pdpCat');
+const pdpName = document.getElementById('pdpName');
+const pdpPrice = document.getElementById('pdpPrice');
+const pdpWholesale = document.getElementById('pdpWholesale');
+const pdpStatus = document.getElementById('pdpStatus');
+const pdpDesc = document.getElementById('pdpDesc');
+const pdpColorBlock = document.getElementById('pdpColorBlock');
+const pdpColorVal = document.getElementById('pdpColorVal');
+const pdpSwatches = document.getElementById('pdpSwatches');
+const pdpModelBlock = document.getElementById('pdpModelBlock');
+const pdpModelVal = document.getElementById('pdpModelVal');
+const pdpModels = document.getElementById('pdpModels');
+const pdpAddCart = document.getElementById('pdpAddCart');
+const pdpBuyNow = document.getElementById('pdpBuyNow');
+
+let currentProduct = null;
+let currentColorIdx = 0;
+let currentModelIdx = 0;
+
+// Nombres de color -> tono CSS real para el swatch circular.
+// Solo se usa para pintar el círculo; el nombre mostrado es siempre el
+// que viene del JSON.
+const COLOR_HEX = {
+  'negro':'#1a1a1a', 'blanco':'#f4eee4', 'rojo':'#d81f26', 'azul':'#1f5fd8',
+  'rosado':'#f4a6c6', 'rosa':'#f4a6c6', 'gris':'#8a8a8a', 'beige':'#e3cfa8',
+  'verde':'#2e9e4f', 'morado':'#7a3fd6', 'plateado':'#c7c7c7', 'dorado':'#d4af37',
+  'camuflaje':'#5c6b47', 'turquesa':'#2fbfb0', 'celeste':'#7ec8e3', 'lila':'#c6a4e0',
+  'amarillo':'#f2c94c', 'naranja':'#ff7a1f', 'multicolor':'conic-gradient(#d81f26,#f2c94c,#2e9e4f,#1f5fd8,#7a3fd6,#d81f26)',
+  'cafe':'#6b4226', 'turquesa plateado':'#8fd9cf', 'oro plateado':'#d9c68f'
+};
+function colorHex(nombre){
+  const key = (nombre || '').toLowerCase().trim();
+  return COLOR_HEX[key] || '#9C9188';
+}
+
+function pdpImageBlock(src, name){
+  if (!src) return `<div class="fallback">📷<br>Sin imagen</div>`;
+  return `<img src="${src}" alt="${name}" onerror="this.parentElement.innerHTML='<div class=\\'fallback\\'>📷<br>Falta imagen</div>'">`;
+}
+
+function currentDisplayImage(p){
+  const colores = p.colores || [];
+  const sel = colores[currentColorIdx];
+  if (sel && sel.imagen) return sel.imagen;
+  const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  return imgs[0] || '';
+}
+
+function renderPdp(){
+  const p = currentProduct;
+  if (!p) return;
+  const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  const colores = p.colores || [];
+  const modelos = p.modelos || [];
+
+  pdpMainImg.innerHTML = pdpImageBlock(currentDisplayImage(p), p.name);
+
+  pdpThumbs.innerHTML = imgs.length > 1
+    ? imgs.map((src, i) => `<div class="pdp-thumb${i===0 && !colores[currentColorIdx]?.imagen ? ' active':''}" data-img="${src}">${pdpImageBlock(src, p.name)}</div>`).join('')
+    : '';
+
+  pdpCat.textContent = CATEGORIES[p.category] || 'Otros';
+  pdpName.textContent = p.name;
+  pdpPrice.textContent = p.price_display;
+  pdpWholesale.textContent = p.wholesale_display ? `Mayorista 3+: ${p.wholesale_display}` : '';
+  pdpStatus.textContent = p.status || '';
+  pdpStatus.style.display = p.status ? 'inline-block' : 'none';
+  pdpDesc.textContent = p.desc || '';
+
+  // Selector de color (solo si el producto tiene colores)
+  if (colores.length){
+    pdpColorBlock.style.display = '';
+    const sel = colores[currentColorIdx] || colores[0];
+    pdpColorVal.textContent = sel.nombre;
+    pdpSwatches.innerHTML = colores.map((c, i) => `
+      <div class="pdp-swatch${i===currentColorIdx?' selected':''}" data-idx="${i}"
+           style="background:${colorHex(c.nombre)}" title="${c.nombre}" aria-label="${c.nombre}"></div>
+    `).join('');
+  } else {
+    pdpColorBlock.style.display = 'none';
+    pdpColorBlock.innerHTML = '';
+  }
+
+  // Selector de modelo (solo si el producto tiene modelos)
+  if (modelos.length){
+    pdpModelBlock.style.display = '';
+    pdpModelVal.textContent = modelos[currentModelIdx] || modelos[0];
+    pdpModels.innerHTML = modelos.map((m, i) => `
+      <button type="button" class="pdp-model-pill${i===currentModelIdx?' selected':''}" data-idx="${i}">${m}</button>
+    `).join('');
+  } else {
+    pdpModelBlock.style.display = 'none';
+    pdpModelBlock.innerHTML = '';
+  }
+
+  const unavailable = Boolean(p.status);
+  pdpAddCart.dataset.id = p.id;
+  pdpAddCart.disabled = unavailable;
+  pdpAddCart.textContent = unavailable ? 'No disponible' : '+ Agregar al carrito';
+  pdpBuyNow.disabled = unavailable;
+}
+
+function openProductModal(id){
+  const p = rawById[id];
+  if (!p) return;
+  currentProduct = p;
+  currentColorIdx = 0;
+  currentModelIdx = 0;
+  renderPdp();
+  pdpOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProductModal(){
+  pdpOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+pdpClose.addEventListener('click', closeProductModal);
+pdpOverlay.addEventListener('click', (e) => { if (e.target === pdpOverlay) closeProductModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pdpOverlay.classList.contains('open')) closeProductModal(); });
+
+// Abrir el modal desde la tarjeta: imagen, nombre o botón "Ver producto"
+grid.addEventListener('click', (e) => {
+  const trigger = e.target.closest('.prod-img, h3[data-id], .prod-view-btn');
+  if (!trigger) return;
+  const id = trigger.dataset.id;
+  if (id) openProductModal(id);
+});
+
+pdpSwatches.addEventListener('click', (e) => {
+  const sw = e.target.closest('.pdp-swatch');
+  if (!sw) return;
+  currentColorIdx = Number(sw.dataset.idx);
+  renderPdp();
+});
+
+pdpModels.addEventListener('click', (e) => {
+  const pill = e.target.closest('.pdp-model-pill');
+  if (!pill) return;
+  currentModelIdx = Number(pill.dataset.idx);
+  renderPdp();
+});
+
+pdpThumbs.addEventListener('click', (e) => {
+  const thumb = e.target.closest('.pdp-thumb');
+  if (!thumb) return;
+  pdpMainImg.innerHTML = pdpImageBlock(thumb.dataset.img, currentProduct.name);
+  pdpThumbs.querySelectorAll('.pdp-thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+});
+
+// "Comprar ahora": agrega al carrito (mismo Cart.addItem que usa el resto
+// del sitio) y lleva directo al checkout ya existente.
+pdpBuyNow.addEventListener('click', () => {
+  if (!currentProduct || pdpBuyNow.disabled) return;
+  if (window.Cart && typeof Cart.addItem === 'function') {
+    Cart.addItem(currentProduct.id, 1);
+  }
+  window.location.href = 'checkout.html';
+});
+</script>
+
+<script src="assets/cart.js"></script>
+<script src="assets/cart-ui.js"></script>
+<script src="assets/yotin.js"></script>
+</body>
+</html>

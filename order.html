@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi pedido — VULKÁN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --obsidian:#120E0B; --obsidian-2:#1B1511; --ash:#2A231D; --lava:#FF5A1F; --ember:#FFB238;
+    --smoke:#9C9188; --paper:#F4EEE4; --paper-dim:#CFC6B8;
+    --crack-glow: 0 0 24px rgba(255,90,31,.55), 0 0 60px rgba(255,178,56,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{ background:var(--obsidian); color:var(--paper); font-family:'Inter',sans-serif; }
+  a{ color:inherit; }
+  nav{ padding:20px clamp(20px,5vw,60px); }
+  .logo{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.2rem; text-decoration:none; }
+  .logo span{ color:var(--lava); }
+
+  main{ max-width:560px; margin:0 auto; padding:20px 20px 80px; }
+  h1{ font-family:'Space Grotesk',sans-serif; font-size:1.6rem; margin-bottom:22px; }
+
+  .panel{ background:var(--obsidian-2); border:1px solid rgba(244,238,228,.1); border-radius:4px; padding:22px; margin-bottom:20px; }
+  label{ display:block; font-size:.82rem; color:var(--paper-dim); margin-bottom:6px; margin-top:14px; }
+  label:first-child{ margin-top:0; }
+  input{
+    width:100%; padding:11px 12px; background:var(--obsidian); border:1px solid rgba(244,238,228,.18);
+    border-radius:2px; color:var(--paper); font-size:.92rem;
+  }
+  input:focus{ outline:none; border-color:var(--ember); }
+  button{
+    margin-top:18px; width:100%; padding:13px; border-radius:2px; border:1px solid var(--lava);
+    background:var(--lava); color:var(--obsidian); font-family:'JetBrains Mono',monospace; font-size:.88rem; cursor:pointer;
+  }
+  button:hover{ box-shadow:var(--crack-glow); }
+
+  .status-pill{ display:inline-block; padding:4px 10px; border-radius:20px; font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.03em; }
+  .status-PAID{ background:rgba(120,200,120,.15); color:#8fd98f; }
+  .status-PENDING, .status-PAYMENT_PROCESSING{ background:rgba(255,178,56,.15); color:var(--ember); }
+  .status-FAILED, .status-CANCELLED{ background:rgba(255,90,31,.15); color:var(--lava); }
+  .status-REFUNDED{ background:rgba(156,145,136,.2); color:var(--smoke); }
+
+  .row{ display:flex; justify-content:space-between; padding:9px 0; font-size:.88rem; border-bottom:1px solid rgba(244,238,228,.07); }
+  .row .k{ color:var(--paper-dim); }
+  .row .v{ font-family:'JetBrains Mono',monospace; }
+  .totals .row.total{ font-size:1.1rem; font-weight:700; }
+  .totals .row.total .v{ color:var(--ember); }
+
+  .error{ color:var(--lava); font-size:.85rem; margin-top:10px; display:none; }
+  .error.show{ display:block; }
+  a.btn{ display:block; text-align:center; margin-top:14px; padding:12px; border:1px solid rgba(244,238,228,.25); border-radius:2px; text-decoration:none; font-family:'JetBrains Mono',monospace; font-size:.84rem; }
+  a.btn:hover{ border-color:var(--ember); }
+</style>
+</head>
+<body>
+<nav><a class="logo" href="index.html">VULK<span>Á</span>N</a></nav>
+<main>
+  <h1>Mi pedido</h1>
+
+  <div class="panel" id="lookupPanel">
+    <label for="lNumber">Número de pedido</label>
+    <input type="text" id="lNumber" placeholder="ORD-000123">
+    <label for="lEmail">Correo con el que compraste</label>
+    <input type="email" id="lEmail" placeholder="tucorreo@ejemplo.com">
+    <button id="lookupBtn">Buscar pedido</button>
+    <p class="error" id="lookupError">No encontramos un pedido con esos datos.</p>
+  </div>
+
+  <div class="panel" id="orderPanel" style="display:none">
+    <div class="row"><span class="k">Pedido</span><span class="v" id="oNumber"></span></div>
+    <div class="row"><span class="k">Estado</span><span class="v"><span class="status-pill" id="oStatus"></span></span></div>
+    <div class="row"><span class="k">Fecha</span><span class="v" id="oDate"></span></div>
+    <div id="oItems" style="margin-top:14px"></div>
+    <div class="totals" style="margin-top:10px">
+      <div class="row"><span class="k">Subtotal</span><span class="v" id="oSubtotal"></span></div>
+      <div class="row"><span class="k">Envío</span><span class="v" id="oShipping"></span></div>
+      <div class="row total"><span class="k">Total</span><span class="v" id="oTotal"></span></div>
+    </div>
+    <a class="btn" id="oReceiptBtn" href="#">↓ Descargar comprobante</a>
+    <a class="btn" href="catalogo.html">Volver a la tienda</a>
+  </div>
+</main>
+
+<script>
+  const STATUS_LABEL = {
+    PENDING: 'Pendiente', PAYMENT_PROCESSING: 'Procesando pago', PAID: 'Pagado',
+    FAILED: 'Pago rechazado', CANCELLED: 'Cancelado', REFUNDED: 'Reembolsado',
+  };
+  function fmt(cents){
+    const soles = Math.floor(Math.abs(cents) / 100);
+    const c = String(Math.abs(cents) % 100).padStart(2, '0');
+    return `S/ ${soles.toLocaleString('es-PE')}.${c}`;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const lNumber = document.getElementById('lNumber');
+  const lEmail = document.getElementById('lEmail');
+  const lookupPanel = document.getElementById('lookupPanel');
+  const orderPanel = document.getElementById('orderPanel');
+  const lookupError = document.getElementById('lookupError');
+
+  async function showOrder(orderNumber, email){
+    lookupError.classList.remove('show');
+    try {
+      const res = await fetch(`/api/orders/get.php?order_number=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'No encontrado');
+
+      document.getElementById('oNumber').textContent = data.order_number;
+      const pill = document.getElementById('oStatus');
+      pill.textContent = STATUS_LABEL[data.status] || data.status;
+      pill.className = 'status-pill status-' + data.status;
+      document.getElementById('oDate').textContent = new Date(data.created_at.replace(' ', 'T')).toLocaleString('es-PE');
+
+      document.getElementById('oItems').innerHTML = data.items.map(i => `
+        <div class="row"><span class="k">${i.name} × ${i.quantity}</span><span class="v">${fmt(i.subtotal_cents)}</span></div>
+      `).join('');
+
+      document.getElementById('oSubtotal').textContent = fmt(data.subtotal_cents);
+      document.getElementById('oShipping').textContent = fmt(data.shipping_cents);
+      document.getElementById('oTotal').textContent = fmt(data.total_cents);
+
+      const receiptBtn = document.getElementById('oReceiptBtn');
+      if (data.status === 'PAID') {
+        receiptBtn.style.display = 'block';
+        receiptBtn.href = `/api/receipt.php?order_number=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`;
+      } else {
+        receiptBtn.style.display = 'none';
+      }
+
+      lookupPanel.style.display = 'none';
+      orderPanel.style.display = 'block';
+    } catch (err) {
+      lookupError.classList.add('show');
+    }
+  }
+
+  document.getElementById('lookupBtn').addEventListener('click', () => {
+    const n = lNumber.value.trim();
+    const e = lEmail.value.trim();
+    if (!n || !e) { lookupError.textContent = 'Completa el número de pedido y el correo.'; lookupError.classList.add('show'); return; }
+    showOrder(n, e);
+  });
+
+  const urlOrder = params.get('order');
+  const urlEmail = params.get('email');
+  if (urlOrder && urlEmail) {
+    lNumber.value = urlOrder;
+    lEmail.value = urlEmail;
+    showOrder(urlOrder, urlEmail);
+  }
+</script>
+</body>
+</html>

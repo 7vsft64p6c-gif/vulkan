@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — VULKÁN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --obsidian:#120E0B;
+    --obsidian-2:#1B1511;
+    --ash:#2A231D;
+    --lava:#FF5A1F;
+    --ember:#FFB238;
+    --smoke:#9C9188;
+    --paper:#F4EEE4;
+    --paper-dim:#CFC6B8;
+    --crack-glow: 0 0 24px rgba(255,90,31,.55), 0 0 60px rgba(255,178,56,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{ background:var(--obsidian); color:var(--paper); font-family:'Inter',sans-serif; }
+  a{ color:inherit; }
+
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px clamp(20px,5vw,60px); border-bottom:1px solid rgba(244,238,228,.08);
+  }
+  .logo{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.2rem; text-decoration:none; letter-spacing:.02em; }
+  .logo span{ color:var(--lava); }
+  .nav-links{ display:none; }
+  @media(min-width:700px){ .nav-links{ display:flex; gap:26px; list-style:none; font-size:.9rem; } }
+  .nav-links a{ text-decoration:none; color:var(--paper-dim); }
+  .nav-links a:hover{ color:var(--paper); }
+
+  main{ max-width:1080px; margin:0 auto; padding:clamp(24px,5vw,50px) clamp(20px,5vw,40px) 100px; }
+  h1{ font-family:'Space Grotesk',sans-serif; font-size:clamp(1.6rem,4vw,2.2rem); margin-bottom:28px; }
+
+  .checkout-grid{ display:grid; grid-template-columns:1fr; gap:32px; }
+  @media(min-width:900px){ .checkout-grid{ grid-template-columns:1.3fr 1fr; align-items:start; } }
+
+  .panel{
+    background:var(--obsidian-2); border:1px solid rgba(244,238,228,.1); border-radius:4px;
+    padding:24px; margin-bottom:20px;
+  }
+  .panel h2{
+    font-family:'JetBrains Mono',monospace; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ember); margin-bottom:16px;
+  }
+  label{ display:block; font-size:.82rem; color:var(--paper-dim); margin-bottom:6px; margin-top:14px; }
+  label:first-child{ margin-top:0; }
+  input[type=text], input[type=email], input[type=tel]{
+    width:100%; padding:11px 12px; background:var(--obsidian); border:1px solid rgba(244,238,228,.18);
+    border-radius:2px; color:var(--paper); font-family:'Inter',sans-serif; font-size:.92rem;
+    transition:border-color .2s ease;
+  }
+  input:focus{ outline:none; border-color:var(--ember); }
+
+  .ship-options{ display:flex; flex-direction:column; gap:10px; }
+  .ship-option{
+    display:flex; gap:10px; align-items:flex-start; padding:12px; border:1px solid rgba(244,238,228,.15);
+    border-radius:2px; cursor:pointer; transition:border-color .2s ease;
+  }
+  .ship-option:hover{ border-color:var(--ember); }
+  .ship-option.selected{ border-color:var(--lava); background:rgba(255,90,31,.06); }
+  .ship-option input{ margin-top:3px; accent-color:var(--lava); }
+  .ship-option .t{ font-size:.9rem; font-weight:600; }
+  .ship-option .d{ font-size:.8rem; color:var(--smoke); margin-top:2px; }
+  #provinciaFields{ margin-top:14px; display:none; }
+  #provinciaFields.show{ display:block; }
+
+  .summary-line{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; font-size:.88rem; border-bottom:1px solid rgba(244,238,228,.07); }
+  .summary-line .name{ color:var(--paper-dim); }
+  .summary-line .amt{ font-family:'JetBrains Mono',monospace; color:var(--paper); flex-shrink:0; }
+  .summary-totals{ margin-top:14px; padding-top:14px; border-top:1px solid rgba(244,238,228,.15); }
+  .summary-totals .row{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:.88rem; padding:5px 0; color:var(--paper-dim); }
+  .summary-totals .row.total{ font-size:1.15rem; color:var(--paper); font-weight:700; padding-top:10px; }
+  .summary-totals .row.total .amt{ color:var(--ember); }
+
+  .pay-btn{
+    width:100%; margin-top:20px; padding:15px; border-radius:2px; border:1px solid var(--lava);
+    background:var(--lava); color:var(--obsidian); font-family:'JetBrains Mono',monospace;
+    font-size:.92rem; letter-spacing:.03em; cursor:pointer; transition:box-shadow .2s ease, opacity .2s ease;
+  }
+  .pay-btn:hover{ box-shadow:var(--crack-glow); }
+  .pay-btn:disabled{ opacity:.5; cursor:not-allowed; box-shadow:none; }
+
+  .form-error{ color:var(--lava); font-size:.83rem; margin-top:14px; display:none; }
+  .form-error.show{ display:block; }
+  .empty-cart{ text-align:center; padding:60px 20px; color:var(--smoke); }
+  .empty-cart a{ color:var(--ember); text-decoration:underline; }
+
+  /* Overlay de procesamiento (Fase 4) */
+  .processing-overlay{
+    position:fixed; inset:0; background:rgba(18,14,11,.92); z-index:200;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:16px; text-align:center; padding:20px;
+  }
+  .processing-overlay.show{ display:flex; }
+  .spinner{
+    width:38px; height:38px; border:3px solid rgba(244,238,228,.15); border-top-color:var(--lava);
+    border-radius:50%; animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @media(prefers-reduced-motion:reduce){ .spinner{ animation:none; border-top-color:rgba(244,238,228,.15); } }
+  .processing-overlay p{ color:var(--paper-dim); font-size:.9rem; max-width:320px; }
+  .processing-overlay .big{ font-family:'Space Grotesk',sans-serif; font-size:1.2rem; color:var(--paper); }
+
+  .mock-panel{ margin-top:24px; padding-top:20px; border-top:1px dashed rgba(244,238,228,.25); }
+  .mock-panel p{ font-size:.78rem; color:var(--smoke); margin-bottom:12px; font-family:'JetBrains Mono',monospace; }
+  .mock-buttons{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+  .mock-buttons button{
+    padding:9px 14px; border-radius:2px; font-family:'JetBrains Mono',monospace; font-size:.78rem;
+    cursor:pointer; border:1px solid rgba(244,238,228,.25); background:transparent; color:var(--paper);
+  }
+  .mock-buttons button:hover{ border-color:var(--ember); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">VULK<span>Á</span>N</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="catalogo.html">Catálogo</a></li>
+  </ul>
+</nav>
+
+<main>
+  <h1>Checkout</h1>
+
+  <div id="emptyCartMsg" class="empty-cart" style="display:none">
+    <p>Tu carrito está vacío. <a href="catalogo.html">Vuelve al catálogo →</a></p>
+  </div>
+
+  <form id="checkoutForm" class="checkout-grid" style="display:none">
+    <div>
+      <div class="panel">
+        <h2>1. Datos del cliente</h2>
+        <label for="custName">Nombre completo</label>
+        <input type="text" id="custName" required autocomplete="name">
+        <label for="custEmail">Correo electrónico</label>
+        <input type="email" id="custEmail" required autocomplete="email">
+        <label for="custPhone">Teléfono / WhatsApp</label>
+        <input type="tel" id="custPhone" required autocomplete="tel">
+      </div>
+
+      <div class="panel">
+        <h2>2. Entrega</h2>
+        <div class="ship-options">
+          <label class="ship-option selected" id="optArequipa">
+            <input type="radio" name="shipMethod" value="arequipa_local" checked>
+            <div>
+              <div class="t">Arequipa — coordinamos la entrega</div>
+              <div class="d">Te contactamos para coordinar el punto y horario de entrega.</div>
+            </div>
+          </label>
+          <label class="ship-option" id="optProvincia">
+            <input type="radio" name="shipMethod" value="provincia_shalom">
+            <div>
+              <div class="t">Otra provincia — envío por Shalom</div>
+              <div class="d">Se envía por agencia Shalom. La tarifa exacta puede variar según destino.</div>
+            </div>
+          </label>
+        </div>
+        <div id="provinciaFields">
+          <label for="shipCity">Ciudad / destino</label>
+          <input type="text" id="shipCity">
+          <label for="shipAddress">Agencia o dirección de referencia</label>
+          <input type="text" id="shipAddress">
+          <label for="shipReference">Referencia adicional (opcional)</label>
+          <input type="text" id="shipReference">
+        </div>
+      </div>
+
+      <div id="formError" class="form-error"></div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>3. Resumen del pedido</h2>
+        <div id="summaryLines"></div>
+        <div class="summary-totals">
+          <div class="row"><span>Subtotal</span><span class="amt" id="sumSubtotal">S/ 0.00</span></div>
+          <div class="row"><span>Envío</span><span class="amt" id="sumShipping">S/ 0.00</span></div>
+          <div class="row total"><span>Total</span><span class="amt" id="sumTotal">S/ 0.00</span></div>
+        </div>
+        <button type="submit" class="pay-btn" id="payBtn">Pagar</button>
+      </div>
+    </div>
+  </form>
+</main>
+
+<div class="processing-overlay" id="processingOverlay">
+  <div class="spinner"></div>
+  <div class="big">Procesando tu pago…</div>
+  <p id="processingText">No cierres esta ventana.</p>
+
+  <div class="mock-panel" id="mockPanel" style="display:none">
+    <p>MODO PRUEBA (mock) — elige qué resultado simular:</p>
+    <div class="mock-buttons">
+      <button type="button" data-outcome="approved">✓ Aprobado</button>
+      <button type="button" data-outcome="pending">⏳ Pendiente</button>
+      <button type="button" data-outcome="rejected">✕ Rechazado</button>
+      <button type="button" data-outcome="error">⚠ Error del proveedor</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/cart.js"></script>
+<script>
+  const form = document.getElementById('checkoutForm');
+  const emptyMsg = document.getElementById('emptyCartMsg');
+  const summaryLines = document.getElementById('summaryLines');
+  const sumSubtotal = document.getElementById('sumSubtotal');
+  const sumShipping = document.getElementById('sumShipping');
+  const sumTotal = document.getElementById('sumTotal');
+  const payBtn = document.getElementById('payBtn');
+  const formError = document.getElementById('formError');
+  const overlay = document.getElementById('processingOverlay');
+  const processingText = document.getElementById('processingText');
+  const mockPanel = document.getElementById('mockPanel');
+
+  const SHIPPING_AREQUIPA_CENTS = 0;
+  const SHIPPING_PROVINCIA_CENTS = 1500; // debe reflejar SHIPPING_PROVINCIA_CENTS del backend — solo para mostrar
+
+  let currentSubtotalCents = 0;
+
+  function selectedShippingMethod(){
+    return document.querySelector('input[name="shipMethod"]:checked').value;
+  }
+  function shippingCentsFor(method){
+    return method === 'arequipa_local' ? SHIPPING_AREQUIPA_CENTS : SHIPPING_PROVINCIA_CENTS;
+  }
+
+  function refreshTotals(){
+    const method = selectedShippingMethod();
+    const shipCents = shippingCentsFor(method);
+    sumShipping.textContent = Cart.formatCents(shipCents);
+    sumTotal.textContent = Cart.formatCents(currentSubtotalCents + shipCents);
+  }
+
+  document.querySelectorAll('input[name="shipMethod"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('optArequipa').classList.toggle('selected', r.value === 'arequipa_local' && r.checked);
+      document.getElementById('optProvincia').classList.toggle('selected', r.value === 'provincia_shalom' && r.checked);
+      document.getElementById('provinciaFields').classList.toggle('show', selectedShippingMethod() === 'provincia_shalom');
+      refreshTotals();
+    });
+  });
+
+  async function loadSummary(){
+    const { lines, subtotalCents } = await Cart.enriched();
+    if (lines.length === 0) {
+      emptyMsg.style.display = 'block';
+      form.style.display = 'none';
+      return;
+    }
+    emptyMsg.style.display = 'none';
+    form.style.display = 'grid';
+
+    currentSubtotalCents = subtotalCents;
+    summaryLines.innerHTML = lines.map(l => `
+      <div class="summary-line">
+        <span class="name">${l.name} × ${l.quantity}${l.out_of_stock ? ' (agotado)' : ''}</span>
+        <span class="amt">${Cart.formatCents(l.subtotal_cents)}</span>
+      </div>`).join('');
+    sumSubtotal.textContent = Cart.formatCents(subtotalCents);
+
+    const hasOOS = lines.some(l => l.out_of_stock);
+    payBtn.disabled = hasOOS;
+    if (hasOOS) {
+      formError.textContent = 'Tienes productos agotados en el carrito. Quítalos para poder pagar.';
+      formError.classList.add('show');
+    }
+    refreshTotals();
+  }
+
+  loadSummary();
+  Cart.subscribe(loadSummary);
+
+  let paymentPollAbort = false;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formError.classList.remove('show');
+    payBtn.disabled = true;
+
+    const method = selectedShippingMethod();
+    const shipping = { method };
+    if (method === 'provincia_shalom') {
+      shipping.city = document.getElementById('shipCity').value.trim();
+      shipping.address = document.getElementById('shipAddress').value.trim();
+      shipping.reference = document.getElementById('shipReference').value.trim();
+      if (!shipping.city) {
+        formError.textContent = 'Indica la ciudad de destino para el envío por Shalom.';
+        formError.classList.add('show');
+        payBtn.disabled = false;
+        return;
+      }
+    }
+
+    const customer = {
+      name: document.getElementById('custName').value.trim(),
+      email: document.getElementById('custEmail').value.trim(),
+      phone: document.getElementById('custPhone').value.trim(),
+    };
+
+    overlay.classList.add('show');
+    processingText.textContent = 'No cierres esta ventana.';
+    mockPanel.style.display = 'none';
+
+    try {
+      const orderRes = await fetch('/api/orders/create.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: Cart.getItems(),
+          customer,
+          shipping,
+          idempotency_key: Cart.getCheckoutIdempotencyKey(),
+        }),
+      });
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) throw new Error(orderData.error || 'No se pudo crear el pedido.');
+
+      const orderNumber = orderData.order_number;
+      Cart.rememberLastOrder(orderNumber, customer.email);
+
+      const payRes = await fetch('/api/payments/create.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_number: orderNumber }),
+      });
+      const payData = await payRes.json();
+      if (!payRes.ok) throw new Error(payData.error || 'No se pudo iniciar el pago.');
+
+      if (payData.type === 'redirect') {
+        processingText.textContent = 'Te estamos llevando a Mercado Pago…';
+        window.location.href = payData.checkout_url;
+        return;
+      }
+
+      if (payData.type === 'mock') {
+        processingText.textContent = 'Estás en modo de prueba (mock).';
+        mockPanel.style.display = 'block';
+        mockPanel.querySelectorAll('button').forEach(btn => {
+          btn.onclick = async () => {
+            mockPanel.querySelectorAll('button').forEach(b => b.disabled = true);
+            processingText.textContent = 'Procesando…';
+            try {
+              await fetch('/api/payments/mock-resolve.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  provider_payment_id: payData.provider_payment_id,
+                  outcome: btn.dataset.outcome,
+                }),
+              });
+            } catch (e) { /* seguimos igual a la página de resultado */ }
+
+            const dest = { approved: 'payment-success.html', pending: 'payment-pending.html' }[btn.dataset.outcome] || 'payment-failure.html';
+            if (btn.dataset.outcome === 'approved') Cart.clear();
+            window.location.href = `${dest}?order=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(customer.email)}`;
+          };
+        });
+        return;
+      }
+
+      throw new Error('Respuesta de pago inesperada.');
+    } catch (err) {
+      overlay.classList.remove('show');
+      payBtn.disabled = false;
+      formError.textContent = err.message || 'Ocurrió un error. Intenta de nuevo.';
+      formError.classList.add('show');
+    }
+  });
+</script>
+</body>
+</html>
