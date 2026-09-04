@@ -28,7 +28,7 @@
      inventar sobre esto (secciones 26-29-40 del prompt maestro).
      ===================================================================== */
   const YOTIN_CONFIG = {
-    endpoint: '/api/yotin', // backend que llama al modelo (ver api-yotin-example.js)
+    endpoint: '/api/yotin.php', // backend que llama al modelo (ver api-yotin-example.js)
     nombre: 'YOTIN',
     envios: {
       cobertura: 'Arequipa y provincias',
